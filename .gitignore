@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+# Jetbrains
+.idea
+
+# Executable
+sync-dependencies-go
