@@ -19,8 +19,11 @@ func UpdateDependencies(defaultDirectory, module, commit string) {
 			log.Fatalf("unable to read file: %v", err)
 		}
 
+		// remove title from file content
+		title := strings.Replace(fileContent, fmt.Sprintf("module %v", module), "", -1)
+
 		// Check if module exists in file
-		if strings.Contains(fileContent, module) {
+		if strings.Contains(title, module) {
 			// Print directory
 			fmt.Println(directory)
 

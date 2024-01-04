@@ -22,7 +22,7 @@ func readFiles(defaultDirectory string, fn baseFunc) error {
 			// Check if path contains go.mod
 			if strings.Contains(path, goModFile) {
 				// Get directory
-				directory := fmt.Sprintf("..%s", strings.Trim(path, goModFile))
+				directory := fmt.Sprintf("%s", strings.Trim(path, goModFile))
 
 				fn(directory)
 			}
