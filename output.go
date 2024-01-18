@@ -23,8 +23,6 @@ func PrintSuccessMessage(messages ...any) {
 		finalMessage += fmt.Sprintf("%v, ", messages[i])
 	}
 
-	finalMessage = finalMessage[:len(finalMessage)-2]
-
 	fmt.Printf("%v \n", styleSuccess(finalMessage))
 }
 
@@ -40,8 +38,6 @@ func PrintErrorMessage(errorLabel string, messages ...any) {
 	for i := 0; i < len(messages); i++ {
 		finalMessage += fmt.Sprintf("%v, ", messages[i])
 	}
-
-	finalMessage = finalMessage[:len(finalMessage)-2]
 
 	fmt.Printf("%v %v\n", finalErrorLabel, styleError(finalMessage))
 }
