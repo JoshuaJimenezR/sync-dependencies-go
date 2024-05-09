@@ -73,6 +73,48 @@ func startCLI() {
 		}
 	})
 
+	app.Command(appActionUpdateGoVersion, appActionUpdateGoVersionDesc, func(cmd *cli.Cmd) {
+		cmd.Spec = appActionUpdateGoVersionSPEC
+
+		cmd.Action = func() {
+			// Define arguments
+			var (
+				argDirectoryPath string
+				argOldVersion    string
+				argVersion       string
+				err              error
+			)
+
+			// Read Directoy Path
+			PrintQuestion("Please provide the directory path: ")
+			argDirectoryPath, err = readCliInput()
+			if err != nil {
+				PrintErrorMessage("Error reading directory path", err)
+			}
+
+			// Read old version
+			PrintQuestion("Please provide the old go version: ")
+			argDirectoryPath, err = readCliInput()
+			if err != nil {
+				PrintErrorMessage("Error reading old go version", err)
+			}
+
+			// Read new Version
+			PrintQuestion("Please provide the new go version: ")
+			argDirectoryPath, err = readCliInput()
+			if err != nil {
+				PrintErrorMessage("Error reading new go version", err)
+			}
+
+			// Check if all arguments are provided
+			if argDirectoryPath == "" || argVersion == "" || argOldVersion == "" {
+				PrintErrorMessage("Error Reading arguments", "Directory Path, old version and new version are required")
+				cli.Exit(1)
+			}
+
+			UpdateGoVersion(argDirectoryPath, argOldVersion, argVersion)
+		}
+	})
 	// *********************************************************************************************
 	// ** Run CLI
 	// *********************************************************************************************

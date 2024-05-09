@@ -6,10 +6,6 @@ const (
 	appDesc    = "Sync Dependencies CLI tool"
 	appSPEC    = "[ -c=<config> ]"
 
-	appArgDirectory        = "Source Directory"
-	appArgDirectoryDefault = ""
-	appArgDirectoryDesc    = "Source directory path"
-
 	vendorFolder           = "vendor"
 	goModFile              = "go.mod"
 	commandGoGet           = "go get"
@@ -27,11 +23,7 @@ const (
 	appActionUpdateDepsDesc = "Finds all modules and updates dependencies based on commit id"
 	appActionUpdateDepsSPEC = ""
 
-	appActionUpdateDepsArgumentModule        = "MODULE"
-	appActionUpdateDepsArgumentModuleDefault = ""
-	appActionUpdateDepsArgumentModuleDesc    = "Module to update"
-
-	appActionUpdateDepsArgumentCommit        = "COMMIT"
-	appActionUpdateDepsArgumentCommitDefault = ""
-	appActionUpdateDepsArgumentCommitDesc    = "Commit to update"
+	appActionUpdateGoVersion     = "update-go-version"
+	appActionUpdateGoVersionDesc = "Updates the go version in all go.mod files"
+	appActionUpdateGoVersionSPEC = ""
 )
