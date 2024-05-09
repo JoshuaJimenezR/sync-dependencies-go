@@ -94,14 +94,14 @@ func startCLI() {
 
 			// Read old version
 			PrintQuestion("Please provide the old go version: ")
-			argDirectoryPath, err = readCliInput()
+			argOldVersion, err = readCliInput()
 			if err != nil {
 				PrintErrorMessage("Error reading old go version", err)
 			}
 
 			// Read new Version
 			PrintQuestion("Please provide the new go version: ")
-			argDirectoryPath, err = readCliInput()
+			argVersion, err = readCliInput()
 			if err != nil {
 				PrintErrorMessage("Error reading new go version", err)
 			}
