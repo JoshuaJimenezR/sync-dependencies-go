@@ -1,14 +1,22 @@
 package main
 
 import (
-	cli "github.com/jawher/mow.cli"
+	"fmt"
 	"os"
+	"regexp"
+
+	cli "github.com/jawher/mow.cli"
 )
+
+var GlobalSilentMode bool
 
 func startCLI() {
 	var (
 		app = cli.App(appName, appDesc)
 	)
+
+	// Register global flags
+	app.BoolOptPtr(&GlobalSilentMode, "s silent", false, "Silent mode, suppress 'job finished' notification")
 
 	// *********************************************************************************************
 	// ** Before
@@ -29,90 +37,92 @@ func startCLI() {
 	// Update Dependencies
 	app.Command(appActionUpdateDeps, appActionUpdateDepsDesc, func(cmd *cli.Cmd) {
 		cmd.Spec = appActionUpdateDepsSPEC
+		var (
+			argDirectoryPath = cmd.StringOpt("d directory", "", "Directory path")
+			argModule        = cmd.StringOpt("m module", "", "Module name")
+			argCommit        = cmd.StringOpt("c commit", "", "Commit ID")
+		)
 
 		cmd.Action = func() {
-			// Define arguments
-			var (
-				argDirectoryPath string
-				argModule        string
-				argCommit        string
-				err              error
-			)
+			directoryPath := *argDirectoryPath
+			module := *argModule
+			commit := *argCommit
 
-			// Read Directory Path
-			PrintQuestion("Please provide the directory Path: ")
-			argDirectoryPath, err = readCliInput()
+			// Validate Directory Path
+			fileInfo, err := os.Stat(directoryPath)
 			if err != nil {
-				PrintErrorMessage("Error reading directory path", err)
+				if os.IsNotExist(err) {
+					PrintErrorMessage(fmt.Sprintf("Error: Directory '--directory %s' not found.", directoryPath))
+				} else {
+					PrintErrorMessage(fmt.Sprintf("Error: Could not stat directory '--directory %s': %v", directoryPath, err))
+				}
+				cli.Exit(1)
+			}
+			if !fileInfo.IsDir() {
+				PrintErrorMessage(fmt.Sprintf("Error: Path '--directory %s' is not a directory.", directoryPath))
 				cli.Exit(1)
 			}
 
-			// Read Module
-			PrintQuestion("Please provide the module: ")
-			argModule, err = readCliInput()
-			if err != nil {
-				PrintErrorMessage("Error reading module", err)
-				cli.Exit(1)
-			}
+			// If validations pass, call the action function
+			UpdateDependencies(directoryPath, module, commit)
 
-			// Read Commit
-			PrintQuestion("Please provide the commit ID: ")
-			argCommit, err = readCliInput()
-			if err != nil {
-				PrintErrorMessage("Error reading commit", err)
-				cli.Exit(1)
+			if !GlobalSilentMode {
+				if errNotify := CommandSayFinished(); errNotify != nil {
+					PrintErrorMessage(fmt.Sprintf("Finished notification error: %v", errNotify))
+				}
 			}
-
-			// Check if all arguments are provided
-			if argDirectoryPath == "" || argModule == "" || argCommit == "" {
-				PrintErrorMessage("Error reading arguments", "Directory Path, Module and commit are required ")
-				cli.Exit(1)
-			}
-
-			UpdateDependencies(argDirectoryPath, argModule, argCommit)
 		}
 	})
 
 	app.Command(appActionUpdateGoVersion, appActionUpdateGoVersionDesc, func(cmd *cli.Cmd) {
 		cmd.Spec = appActionUpdateGoVersionSPEC
+		var (
+			argDirectoryPath = cmd.StringOpt("d directory", "", "Directory path")
+			argOldVersion    = cmd.StringOpt("o old-version", "", "Old Go version")
+			argNewVersion    = cmd.StringOpt("n new-version", "", "New Go version")
+		)
 
 		cmd.Action = func() {
-			// Define arguments
-			var (
-				argDirectoryPath string
-				argOldVersion    string
-				argVersion       string
-				err              error
-			)
+			directoryPath := *argDirectoryPath
+			oldVersion := *argOldVersion
+			newVersion := *argNewVersion
 
-			// Read Directoy Path
-			PrintQuestion("Please provide the directory path: ")
-			argDirectoryPath, err = readCliInput()
+			// Validate Directory Path
+			fileInfo, err := os.Stat(directoryPath)
 			if err != nil {
-				PrintErrorMessage("Error reading directory path", err)
+				if os.IsNotExist(err) {
+					PrintErrorMessage(fmt.Sprintf("Error: Directory '--directory %s' not found.", directoryPath))
+				} else {
+					PrintErrorMessage(fmt.Sprintf("Error: Could not stat directory '--directory %s': %v", directoryPath, err))
+				}
+				cli.Exit(1)
 			}
-
-			// Read old version
-			PrintQuestion("Please provide the old go version: ")
-			argOldVersion, err = readCliInput()
-			if err != nil {
-				PrintErrorMessage("Error reading old go version", err)
-			}
-
-			// Read new Version
-			PrintQuestion("Please provide the new go version: ")
-			argVersion, err = readCliInput()
-			if err != nil {
-				PrintErrorMessage("Error reading new go version", err)
-			}
-
-			// Check if all arguments are provided
-			if argDirectoryPath == "" || argVersion == "" || argOldVersion == "" {
-				PrintErrorMessage("Error Reading arguments", "Directory Path, old version and new version are required")
+			if !fileInfo.IsDir() {
+				PrintErrorMessage(fmt.Sprintf("Error: Path '--directory %s' is not a directory.", directoryPath))
 				cli.Exit(1)
 			}
 
-			UpdateGoVersion(argDirectoryPath, argOldVersion, argVersion)
+			// Validate Go Version Strings
+			versionRegex := regexp.MustCompile(`^\d+\.\d+(\.\d+)?$`)
+
+			if !versionRegex.MatchString(oldVersion) {
+				PrintErrorMessage(fmt.Sprintf("Error: Invalid Go version format for '--old-version %s'. Expected format like '1.18' or '1.19.2'.", oldVersion))
+				cli.Exit(1)
+			}
+
+			if !versionRegex.MatchString(newVersion) {
+				PrintErrorMessage(fmt.Sprintf("Error: Invalid Go version format for '--new-version %s'. Expected format like '1.18' or '1.19.2'.", newVersion))
+				cli.Exit(1)
+			}
+
+			// If validations pass, call the action function
+			UpdateGoVersion(directoryPath, oldVersion, newVersion)
+
+			if !GlobalSilentMode {
+				if errNotify := CommandSayFinished(); errNotify != nil {
+					PrintErrorMessage(fmt.Sprintf("Finished notification error: %v", errNotify))
+				}
+			}
 		}
 	})
 	// *********************************************************************************************
