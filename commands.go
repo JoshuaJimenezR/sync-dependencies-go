@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 func CommandGoGet(directory string) error {
@@ -16,8 +17,7 @@ func CommandGoGet(directory string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", strings.Join(cmd.Args, " "), err, stderr.String())
 	}
 
 	return nil
@@ -33,8 +33,7 @@ func CommandGoGetU(directory string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", strings.Join(cmd.Args, " "), err, stderr.String())
 	}
 
 	return nil
@@ -50,8 +49,7 @@ func CommandGoModTidy(directory string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", strings.Join(cmd.Args, " "), err, stderr.String())
 	}
 
 	return nil
@@ -67,8 +65,7 @@ func CommandGoModVendor(directory string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", strings.Join(cmd.Args, " "), err, stderr.String())
 	}
 
 	return nil
@@ -84,16 +81,15 @@ func CommandGoCleanModCache(directory string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", strings.Join(cmd.Args, " "), err, stderr.String())
 	}
 
 	return nil
 }
 
 func CommandGoCommit(directory, module, commit string) error {
-	command := fmt.Sprintf("%v %v@%v", commandGoGet, module, commit)
-	cmd := exec.Command(commandBash, commandC, command)
+	commandString := fmt.Sprintf("%s %s@%s", commandGoGet, module, commit)
+	cmd := exec.Command(commandBash, commandC, commandString)
 	cmd.Dir = directory
 
 	var out bytes.Buffer
@@ -102,16 +98,16 @@ func CommandGoCommit(directory, module, commit string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		// For this one, cmd.Args would be [bash -c "go get module@commit"], so using commandString is more direct.
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", commandString, err, stderr.String())
 	}
 
 	return nil
 }
 
 func CommandSayFinished() error {
-	command := fmt.Sprintf("say %v", "job has finished")
-	cmd := exec.Command(commandBash, commandC, command)
+	commandString := fmt.Sprintf("say %s", "job has finished")
+	cmd := exec.Command(commandBash, commandC, commandString)
 
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -119,8 +115,8 @@ func CommandSayFinished() error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(fmt.Sprintf("error: %v - %v", err, stderr.String()))
-		return err
+		// Similar to CommandGoCommit, using commandString is better than cmd.Args
+		return fmt.Errorf("error executing '%s': %w. Stderr: %s", commandString, err, stderr.String())
 	}
 
 	return nil
